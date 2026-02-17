@@ -6,8 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
 import { signOut, useSession } from "next-auth/react";
 
-const NAV = [
+const NAV: Array<{ href: string; label: string }> = [
   { href: "/", label: "Home" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/projects", label: "Projects" },
   { href: "/gallery", label: "Gallery" },
   { href: "/services", label: "Services" },
@@ -81,10 +82,9 @@ function AuthButtons() {
       <Link
         href="/auth/sign-in"
         className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium
-           border border-white/15 dark:border-white/15
-           bg-white/10 dark:bg-white/10 text-white
-           hover:bg-white/15 transition"
-
+               border border-white/15 dark:border-white/15
+               bg-white/10 dark:bg-white/10 text-white
+               hover:bg-white/15 transition"
       >
         Sign in
       </Link>
