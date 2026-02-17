@@ -1,95 +1,137 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { toast } from "sonner";
+
+type FormState = {
+  name: string;
+  email: string;
+  password: string;
+};
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    email: "",
+    password: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
     setLoading(true);
-
-    const fd = new FormData(e.currentTarget);
-    const name = String(fd.get("name") || "");
-    const email = String(fd.get("email") || "");
-    const password = String(fd.get("password") || "");
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(form),
       });
 
       if (!res.ok) {
-        setErr("Sign up failed.");
+        const data = await res.json().catch(() => null);
+        const msg =
+          data?.message ||
+          data?.error ||
+          "Sign up failed. Please check your details and try again.";
+        setErr(msg);
+        toast.error(msg);
         setLoading(false);
         return;
       }
 
-      router.push("/auth/sign-in?created=1");
-    } catch {
-      setErr("Sign up failed.");
-    } finally {
+      toast.success("Account created! You can sign in now.");
+      setLoading(false);
+      router.push("/auth/sign-in");
+    } catch (error) {
+      console.error(error);
+      const msg = "Network error. Please try again.";
+      setErr(msg);
+      toast.error(msg);
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-950/50 backdrop-blur p-6 shadow-xl">
-        <h1 className="text-3xl font-bold tracking-tight">Create account</h1>
+    <div className="mx-auto flex min-h-screen max-w-md items-center px-4">
+      <div className="w-full rounded-2xl border border-neutral-200/70 bg-white/70 p-6 shadow-sm backdrop-blur dark:border-neutral-800/70 dark:bg-neutral-950/60">
+        <h1 className="text-2xl font-semibold tracking-tight">Create account</h1>
         <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-          Join Atrium Studio experience.
+          Sign up to continue.
         </p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-3">
-          <input
-            name="name"
-            placeholder="Full name"
-            className="w-full rounded-lg border border-neutral-200/70 dark:border-neutral-800/70 bg-white/80 dark:bg-neutral-900/60 px-4 py-3 outline-none"
-            required
-          />
-          <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            className="w-full rounded-lg border border-neutral-200/70 dark:border-neutral-800/70 bg-white/80 dark:bg-neutral-900/60 px-4 py-3 outline-none"
-            required
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Password (min 6)"
-            className="w-full rounded-lg border border-neutral-200/70 dark:border-neutral-800/70 bg-white/80 dark:bg-neutral-900/60 px-4 py-3 outline-none"
-            minLength={6}
-            required
-          />
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Name</label>
+            <input
+              value={form.name}
+              onChange={(e) => updateField("name", e.target.value)}
+              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-neutral-900/10 dark:border-neutral-800 dark:bg-neutral-950 dark:focus:ring-neutral-100/10"
+              placeholder="Your name"
+              autoComplete="name"
+              required
+              minLength={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Email</label>
+            <input
+              value={form.email}
+              onChange={(e) => updateField("email", e.target.value)}
+              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-neutral-900/10 dark:border-neutral-800 dark:bg-neutral-950 dark:focus:ring-neutral-100/10"
+              placeholder="you@email.com"
+              autoComplete="email"
+              required
+              type="email"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Password</label>
+            <input
+              value={form.password}
+              onChange={(e) => updateField("password", e.target.value)}
+              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-neutral-900/10 dark:border-neutral-800 dark:bg-neutral-950 dark:focus:ring-neutral-100/10"
+              placeholder="••••••••"
+              autoComplete="new-password"
+              required
+              type="password"
+              minLength={6}
+            />
+          </div>
+
+          {err ? (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200">
+              {err}
+            </div>
+          ) : null}
 
           <button
+            type="submit"
             disabled={loading}
-            className="w-full rounded-lg px-4 py-3 font-semibold bg-accent-olive dark:bg-accent-copper text-white hover:opacity-90 disabled:opacity-60 transition"
+            className="w-full rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60 dark:bg-neutral-100 dark:text-neutral-900"
           >
-            {loading ? "Creating..." : "Sign up"}
+            {loading ? "Creating..." : "Create account"}
           </button>
-
-          {err && <p className="text-sm text-red-500">{err}</p>}
-
-          <p className="pt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
-            Already have account?{" "}
-            <Link
-              href="/auth/sign-in"
-              className="font-semibold text-accent-olive dark:text-accent-copper"
-            >
-              Sign in
-            </Link>
-          </p>
         </form>
+
+        <p className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
+          Already have an account?{" "}
+          <Link className="font-medium text-neutral-900 underline dark:text-neutral-100" href="/auth/sign-in">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
