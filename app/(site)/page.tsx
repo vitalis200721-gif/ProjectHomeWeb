@@ -8,6 +8,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Reveal } from "@/components/Reveal";
+import { HeroUltra } from "@/components/HeroUltra";
+
 
 function pickLocalFallback(i: number) {
   // iš tavo /public/media turėtų būti img-001.jpg ... img-090.jpg
@@ -49,112 +51,8 @@ export default function HomePage() {
   return (
     <div className="space-y-24">
       {/* HERO (FULL PRO CINEMATIC) */}
-      <section className="relative h-[78vh] md:h-[86vh] overflow-hidden">
-        {/* Background slow zoom */}
-        <motion.div
-          className="absolute inset-0"
-          initial={{ scale: 1.06 }}
-          animate={{ scale: 1.12 }}
-          transition={{ duration: 18, ease: "easeOut" }}
-        >
-          <Image
-            src="/media/img-061.jpg"
-            alt="Hero background"
-            fill
-            priority
-            className="object-cover object-center"
-          />
-        </motion.div>
+      <HeroUltra />
 
-        {/* overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/25 to-black/70" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_55%)]" />
-
-        {/* content */}
-        <div className="relative z-10 h-full flex items-center">
-          <div className="max-w-7xl mx-auto px-4 w-full">
-            <div className="max-w-3xl">
-              <motion.p
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs sm:text-sm text-white/90 backdrop-blur"
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9, delay: 0.15 }}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-white/90" />
-                Atrium Studio • Cinematic Home Experiences
-              </motion.p>
-
-              <motion.h1
-                className="mt-6 text-4xl sm:text-6xl md:text-7xl font-serif font-bold tracking-tight text-white"
-                initial={{ opacity: 0, y: 28 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.1, delay: 0.25 }}
-              >
-                Cinematic homes,
-                <span className="block text-white/90">tailored to you.</span>
-              </motion.h1>
-
-              <motion.p
-                className="mt-6 text-base sm:text-lg md:text-xl max-w-2xl text-white/80"
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.1, delay: 0.45 }}
-              >
-                Explore modern, sustainable architecture and interiors that tell
-                a story. Experience the future of home design.
-              </motion.p>
-
-              {/* ✅ FIX: button tekstas visada matomas */}
-              <motion.div
-                className="mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4"
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.1, delay: 0.65 }}
-              >
-                <Link
-                  href="/projects"
-                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-sm sm:text-base font-semibold
-                  bg-white text-black hover:bg-white/90 transition relative"
-                >
-                  <span className="relative z-10">Explore Projects</span>
-                </Link>
-
-                <Link
-                  href="/finder"
-                  className="inline-flex items-center justify-center rounded-md px-6 py-3 text-sm sm:text-base font-semibold
-                  border border-white/30 bg-white/10 text-white backdrop-blur hover:bg-white/15 transition relative"
-                >
-                  <span className="relative z-10">Try Property Finder</span>
-                </Link>
-              </motion.div>
-
-              {/* stats */}
-              <motion.div
-                className="mt-10 grid grid-cols-3 gap-3 sm:gap-6 text-white/85 text-xs sm:text-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1.0, delay: 0.95 }}
-              >
-                <div className="rounded-xl border border-white/15 bg-white/5 backdrop-blur px-4 py-3">
-                  <div className="text-white font-semibold">Premium craft</div>
-                  <div className="text-white/70">Architecture + Interiors</div>
-                </div>
-                <div className="rounded-xl border border-white/15 bg-white/5 backdrop-blur px-4 py-3">
-                  <div className="text-white font-semibold">Sustainable</div>
-                  <div className="text-white/70">Materials & systems</div>
-                </div>
-                <div className="rounded-xl border border-white/15 bg-white/5 backdrop-blur px-4 py-3">
-                  <div className="text-white font-semibold">Cinematic</div>
-                  <div className="text-white/70">Light, mood, story</div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-
-        {/* subtle bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-neutral-950/40 to-transparent" />
-      </section>
 
       {/* SIGNATURE STYLES */}
       <section className="max-w-7xl mx-auto px-4">

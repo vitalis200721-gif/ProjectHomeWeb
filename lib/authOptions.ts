@@ -1,17 +1,29 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" }, // stabiliau dev’e, mažiau DB edge-case
+
+  // Paliekam jwt kaip pas tave (gerai dev'e + stabilu)
+  session: { strategy: "jwt" },
+
   pages: {
     signIn: "/auth/sign-in",
   },
+
   secret: process.env.NEXTAUTH_SECRET,
+
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      allowDangerousEmailAccountLinking: true,
+    }),
+
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -38,6 +50,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -47,9 +60,9 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+
     async session({ session, token }) {
       if (session.user && token.sub) {
-        // pridedam user.id į session.user
         (session.user as any).id = token.sub;
       }
       return session;

@@ -1,26 +1,33 @@
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { redirect } from "next/navigation";
-import ProfileForm from "./profile-form";
+import { prisma } from "@/lib/prisma";
+import { ProfileForm } from "@/components/ProfileForm";
+
+export const metadata = {
+  title: "Profile",
+};
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/auth/sign-in");
+  const userId = (session?.user as any)?.id as string | undefined;
+
+  if (!userId) {
+    redirect("/auth/sign-in");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true },
+  });
+
+  if (!user?.email) {
+    redirect("/auth/sign-in");
+  }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      <div className="rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-950/50 backdrop-blur p-6 shadow-xl">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Profile settings
-        </h1>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-          Update your name and password.
-        </p>
-
-        <div className="mt-8">
-          <ProfileForm />
-        </div>
-      </div>
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      <ProfileForm initialName={user.name ?? ""} initialEmail={user.email} />
     </div>
   );
 }

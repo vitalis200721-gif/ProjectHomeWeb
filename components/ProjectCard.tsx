@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type { Project } from "@/lib/data";
-import { ProjectActions } from "@/components/ProjectActions";
+import { SaveProjectButton } from "@/components/SaveProjectButton";
 
 function BudgetPill({ band }: { band: Project["budgetBand"] }) {
   const map: Record<Project["budgetBand"], string> = {
@@ -24,9 +24,11 @@ function BudgetPill({ band }: { band: Project["budgetBand"] }) {
 }
 
 export function ProjectCard({ project }: { project: Project }) {
-  const cover =
-    project.images?.[0] ||
-    "/media/img-001.jpg"; // safe fallback jei kažkur trūksta
+  const cover = project.images?.[0] || "/media/img-001.jpg";
+
+  // ✅ IMPORTANT:
+  // SavedProject.projectId yra String — mes naudosim project.slug kaip projectId
+  const projectId = project.slug;
 
   return (
     <motion.div
@@ -49,12 +51,24 @@ export function ProjectCard({ project }: { project: Project }) {
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/10 to-black/65 opacity-100" />
 
-          {/* Top badges */}
+          {/* Top row */}
           <div className="absolute top-4 left-4 right-4 flex items-start justify-between gap-3">
             <span className="inline-flex rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[11px] sm:text-xs text-white backdrop-blur">
               {project.style} • {project.type}
             </span>
-            <BudgetPill band={project.budgetBand} />
+
+            <div className="flex items-center gap-2">
+              <BudgetPill band={project.budgetBand} />
+            </div>
+          </div>
+
+          {/* ✅ SAVE BUTTON (top-right corner, separate so it doesn't navigate) */}
+          <div
+            className="absolute top-4 right-4 z-20"
+            onClick={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <SaveProjectButton projectId={projectId} />
           </div>
 
           {/* Bottom title */}

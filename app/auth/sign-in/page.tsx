@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -52,7 +53,19 @@ export default function SignInPage() {
           </p>
         )}
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-3">
+        {/* Social login */}
+        <div className="mt-6">
+          <GoogleSignInButton />
+
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-neutral-200/70 dark:bg-neutral-800/70" />
+            <span className="text-xs text-neutral-500">or</span>
+            <div className="h-px flex-1 bg-neutral-200/70 dark:bg-neutral-800/70" />
+          </div>
+        </div>
+
+        {/* Credentials login */}
+        <form onSubmit={onSubmit} className="space-y-3">
           <input
             name="email"
             type="email"
