@@ -2,9 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import type { Project } from "@/lib/data";
-import { SaveProjectButton } from "@/components/SaveProjectButton";
+// Jei turi "Save" mygtuką – palik. Jei neturi, tiesiog užkomentuok importą ir komponentą žemiau.
+// import { SaveProjectButton } from "@/components/SaveProjectButton";
+
+function cx(...classes: Array<string | false | undefined | null>) {
+  return classes.filter(Boolean).join(" ");
+}
 
 function BudgetPill({ band }: { band: Project["budgetBand"] }) {
   const map: Record<Project["budgetBand"], string> = {
@@ -16,26 +21,101 @@ function BudgetPill({ band }: { band: Project["budgetBand"] }) {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] sm:text-xs border backdrop-blur ${map[band]}`}
+      className={cx(
+        "inline-flex items-center rounded-full px-3 py-1 text-[11px] sm:text-xs border backdrop-blur",
+        map[band]
+      )}
     >
       {band}
     </span>
   );
 }
 
+/**
+ * ULTRA EXPERIENCE:
+ * - glow seka pelę (CSS variables)
+ * - magnetic hover (motion values + spring)
+ * - subtle light sweep + premium border
+ */
 export function ProjectCard({ project }: { project: Project }) {
   const cover = project.images?.[0] || "/media/img-001.jpg";
 
-  // ✅ IMPORTANT:
-  // SavedProject.projectId yra String — mes naudosim project.slug kaip projectId
-  const projectId = project.slug;
+  // Magnetic hover (translate based on cursor)
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const x = useSpring(mx, { stiffness: 220, damping: 18, mass: 0.4 });
+  const y = useSpring(my, { stiffness: 220, damping: 18, mass: 0.4 });
+
+  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+
+    // Cursor position in element
+    const px = e.clientX - r.left;
+    const py = e.clientY - r.top;
+
+    // Set CSS vars for glow
+    el.style.setProperty("--mx", `${px}px`);
+    el.style.setProperty("--my", `${py}px`);
+
+    // Magnetic: normalize -0.5..0.5 then scale
+    const nx = (px / r.width - 0.5) * 2;
+    const ny = (py / r.height - 0.5) * 2;
+
+    mx.set(nx * 10); // magnet strength
+    my.set(ny * 10);
+  }
+
+  function onLeave(e: React.MouseEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    // Center glow softly when leaving
+    el.style.setProperty("--mx", `50%`);
+    el.style.setProperty("--my", `50%`);
+
+    mx.set(0);
+    my.set(0);
+  }
 
   return (
     <motion.div
+      style={{ x, y }}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
       whileHover={{ y: -6 }}
       transition={{ type: "spring", stiffness: 260, damping: 18 }}
-      className="group relative overflow-hidden rounded-xl bg-white dark:bg-neutral-800 shadow hover:shadow-xl transition-shadow"
+      className={cx(
+        "group relative overflow-hidden rounded-2xl",
+        "bg-white/80 dark:bg-neutral-900/50 backdrop-blur",
+        "border border-black/5 dark:border-white/10",
+        "shadow-lg hover:shadow-2xl transition-shadow"
+      )}
     >
+      {/* Glow layer (follows mouse) */}
+      <div
+        className={cx(
+          "pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        )}
+        style={{
+          background:
+            "radial-gradient(650px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.12), transparent 45%)",
+        }}
+      />
+
+      {/* Premium border highlight */}
+      <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-black/5 dark:ring-white/10" />
+
+      {/* Light sweep */}
+      <div
+        className={cx(
+          "pointer-events-none absolute -inset-x-24 -top-24 h-40 rotate-12",
+          "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        )}
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent)",
+        }}
+      />
+
       <Link href={`/projects/${project.slug}`} className="block">
         {/* Image */}
         <div className="relative h-56 w-full overflow-hidden">
@@ -49,7 +129,7 @@ export function ProjectCard({ project }: { project: Project }) {
           />
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/10 to-black/65 opacity-100" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/10 to-black/70" />
 
           {/* Top row */}
           <div className="absolute top-4 left-4 right-4 flex items-start justify-between gap-3">
@@ -59,23 +139,21 @@ export function ProjectCard({ project }: { project: Project }) {
 
             <div className="flex items-center gap-2">
               <BudgetPill band={project.budgetBand} />
-            </div>
-          </div>
 
-          {/* ✅ SAVE BUTTON (top-right corner, separate so it doesn't navigate) */}
-          <div
-            className="absolute top-4 right-4 z-20"
-            onClick={(e) => e.preventDefault()}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <SaveProjectButton projectId={projectId} />
+              {/* SAVE BUTTON (optional) */}
+              {/*
+              <div className="ml-1">
+                <SaveProjectButton projectId={project.slug} />
+              </div>
+              */}
+            </div>
           </div>
 
           {/* Bottom title */}
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <h3 className="text-white text-lg font-semibold leading-tight">
+                <h3 className="text-white text-lg font-semibold leading-tight drop-shadow">
                   {project.title}
                 </h3>
                 <p className="text-white/80 text-xs sm:text-sm">
@@ -101,7 +179,7 @@ export function ProjectCard({ project }: { project: Project }) {
             {(project.mustHaves || []).slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/40 px-3 py-1 text-[11px] text-neutral-700 dark:text-neutral-200"
+                className="rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-50/80 dark:bg-neutral-950/30 px-3 py-1 text-[11px] text-neutral-700 dark:text-neutral-200 backdrop-blur"
               >
                 {tag}
               </span>
@@ -109,6 +187,9 @@ export function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
       </Link>
+
+      {/* Subtle bottom fade */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/5 to-transparent dark:from-white/5" />
     </motion.div>
   );
 }
