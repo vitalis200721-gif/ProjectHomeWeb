@@ -39,6 +39,8 @@ function ThemeToggle() {
                  bg-white/80 dark:bg-neutral-900/60 backdrop-blur
                  text-neutral-900 dark:text-neutral-100
                  hover:bg-white dark:hover:bg-neutral-900 transition"
+      aria-label="Toggle theme"
+      title="Toggle theme"
     >
       {isDark ? "🌙" : "☀️"}
     </button>
@@ -54,36 +56,63 @@ function AvatarMenu() {
   const name = session.user.name || session.user.email || "User";
   const initial = name.charAt(0).toUpperCase();
 
+  // Uždarom dropdown paspaudus bet kur kitur
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      const el = e.target as HTMLElement | null;
+      if (!el) return;
+      if (el.closest("[data-avatar-menu]")) return;
+      setOpen(false);
+    }
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" data-avatar-menu>
       <button
         onClick={() => setOpen((v) => !v)}
         className="inline-flex h-10 w-10 items-center justify-center rounded-full
                    bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900
-                   font-semibold"
+                   font-semibold shadow-sm"
+        aria-label="Open account menu"
       >
         {initial}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white dark:bg-neutral-950 shadow-xl p-2 z-50">
+        <div
+          className="absolute right-0 mt-2 w-52 rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70
+                     bg-white/90 dark:bg-neutral-950/90 backdrop-blur shadow-xl p-2 z-50"
+        >
+          <div className="px-3 py-2">
+            <div className="text-xs text-neutral-500 dark:text-neutral-400">
+              Signed in as
+            </div>
+            <div className="text-sm font-semibold truncate">
+              {session.user.email || session.user.name}
+            </div>
+          </div>
+
+          <div className="my-1 h-px bg-neutral-200/70 dark:bg-neutral-800/70" />
+
           <Link
             href="/dashboard"
-            className="block rounded-lg px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            className="block rounded-xl px-3 py-2 text-sm hover:bg-neutral-100/70 dark:hover:bg-neutral-900/70 transition"
           >
             Dashboard
           </Link>
 
           <Link
             href="/profile"
-            className="block rounded-lg px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            className="block rounded-xl px-3 py-2 text-sm hover:bg-neutral-100/70 dark:hover:bg-neutral-900/70 transition"
           >
             Profile
           </Link>
 
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="w-full text-left rounded-lg px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            className="w-full text-left rounded-xl px-3 py-2 text-sm hover:bg-neutral-100/70 dark:hover:bg-neutral-900/70 transition"
           >
             Sign out
           </button>
@@ -110,10 +139,9 @@ function AuthButtons() {
     <div className="flex items-center gap-2">
       <Link
         href="/auth/sign-in"
-        className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium
-           border border-white/15 dark:border-white/15
-           bg-white/10 dark:bg-white/10 text-white
-           hover:bg-white/15 transition"
+        className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold
+                   border border-white/15 bg-white/10 text-white
+                   hover:bg-white/15 transition"
       >
         Sign in
       </Link>
@@ -133,9 +161,20 @@ function AuthButtons() {
 export function Header() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => setMobileOpen(false), [pathname]);
+
+  // Floating navbar on scroll
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 12);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const navLinks = useMemo(() => {
     const items = session?.user
@@ -164,27 +203,85 @@ export function Header() {
   }, [pathname, session?.user]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-neutral-200/70 dark:border-neutral-800/70 bg-white/70 dark:bg-neutral-950/50 backdrop-blur">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black font-bold">
-            A
-          </span>
-          <div className="leading-tight">
-            <div className="font-semibold tracking-tight">Atrium Studio</div>
-            <div className="text-xs text-neutral-500 dark:text-neutral-400 -mt-0.5">
-              Cinematic Homes
+    <header className="sticky top-0 z-50 w-full">
+      {/* Outer wrapper to allow floating style */}
+      <div
+        className={cx(
+          "transition-all duration-300",
+          scrolled ? "py-3" : "py-0"
+        )}
+      >
+        <div
+          className={cx(
+            "mx-auto max-w-7xl px-4 transition-all duration-300",
+            scrolled ? "px-2 sm:px-4" : "px-4"
+          )}
+        >
+          <div
+            className={cx(
+              "flex items-center justify-between gap-4 transition-all duration-300",
+              // base glass style
+              "backdrop-blur border border-neutral-200/70 dark:border-neutral-800/70",
+              "bg-white/70 dark:bg-neutral-950/50",
+              // floating behavior
+              scrolled
+                ? "rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 h-14"
+                : "rounded-none shadow-none h-16 border-x-0"
+            )}
+          >
+            {/* Left: Logo */}
+            <div className="pl-3 sm:pl-4">
+              <Link href="/" className="flex items-center gap-2">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black font-bold">
+                  A
+                </span>
+                <div className="leading-tight">
+                  <div className="font-semibold tracking-tight">
+                    Atrium Studio
+                  </div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400 -mt-0.5">
+                    Cinematic Homes
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {/* Center: Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-1">{navLinks}</nav>
+
+            {/* Right */}
+            <div className="flex items-center gap-2 pr-3 sm:pr-4">
+              <ThemeToggle />
+
+              <div className="hidden md:block">
+                <AuthButtons />
+              </div>
+
+              {/* Mobile menu button */}
+              <button
+                type="button"
+                onClick={() => setMobileOpen((v) => !v)}
+                className="lg:hidden inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm
+                           border border-neutral-200/70 dark:border-neutral-700/70
+                           bg-white/80 dark:bg-neutral-900/60
+                           text-neutral-900 dark:text-neutral-100
+                           hover:bg-white dark:hover:bg-neutral-900 transition"
+                aria-label="Open menu"
+              >
+                {mobileOpen ? "✕" : "☰"}
+              </button>
             </div>
           </div>
-        </Link>
 
-        <nav className="hidden lg:flex items-center gap-1">{navLinks}</nav>
-
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <div className="hidden md:block">
-            <AuthButtons />
-          </div>
+          {/* Mobile dropdown */}
+          {mobileOpen && (
+            <div className="lg:hidden mt-2 rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/80 dark:bg-neutral-950/60 backdrop-blur p-3">
+              <nav className="flex flex-col gap-1">{navLinks}</nav>
+              <div className="mt-3 pt-3 border-t border-neutral-200/70 dark:border-neutral-800/70">
+                <AuthButtons />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
