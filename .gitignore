@@ -1,4 +1,26 @@
-.env
-.next
+# dependencies
 node_modules
+
+# next build output
 .next
+out
+
+# env files
+.env
+.env.*.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Prisma generated (optional; palieku kaip pas tave)
+generated/prisma
