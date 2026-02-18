@@ -8,7 +8,10 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // Use a fallback empty string so TypeScript infers a plain string rather than
+  // the union `string | undefined`. In practice the .env file should always
+  // provide a DATABASE_URL. If it's missing, Prisma will error at runtime.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DATABASE_URL"] || "",
   },
 });

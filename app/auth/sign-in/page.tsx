@@ -2,16 +2,23 @@
 
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 export default function SignInPage() {
   const router = useRouter();
-  const sp = useSearchParams();
-  const created = sp.get("created");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Track whether the account was just created based on the `created` query
+  // parameter. We read directly from the URL in an effect to avoid using
+  // `useSearchParams`, which requires a Suspense boundary when statically prerendered.
+  const [created, setCreated] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCreated(params.has("created"));
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,6 +54,7 @@ export default function SignInPage() {
           Sign in to continue.
         </p>
 
+        {/* Show a message if the `created` search param is present */}
         {created && (
           <p className="mt-4 text-sm text-emerald-600">
             Account created. Now sign in ✅

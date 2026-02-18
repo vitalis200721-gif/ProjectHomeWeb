@@ -9,11 +9,9 @@ function clamp(n: number, min = 0, max = 100) {
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-
   const userId = (session?.user as any)?.id as string | undefined;
 
-  // Jei dėl kokios nors priežasties session nėra (turėtų būti apsaugota middleware),
-  // tiesiog rodome fallback.
+  // If session missing (should be protected by middleware), show fallback.
   if (!userId) {
     return (
       <main className="mx-auto max-w-6xl px-4 py-10">
@@ -35,13 +33,16 @@ export default async function DashboardPage() {
     );
   }
 
-  // Pasiimam userį iš DB (saugiai, be papildomų lentelių)
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { name: true, email: true, image: true },
-  });
+  // Fetch user and saved count from DB
+  const [user, savedCount] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true, image: true },
+    }),
+    prisma.savedProject.count({ where: { userId } }),
+  ]);
 
-  // Paprastas "completion" algoritmas
+  // Simple completion score
   const fields = [
     Boolean(user?.name),
     Boolean(user?.email),
@@ -51,6 +52,9 @@ export default async function DashboardPage() {
   const completion = clamp(Math.round((completed / fields.length) * 100));
 
   const displayName = user?.name || user?.email || "User";
+
+  // Since you are NOT SaaS billing yet, keep plan state neutral.
+  const currentPackage = "Not selected";
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -77,6 +81,7 @@ export default async function DashboardPage() {
             View projects
           </Link>
 
+          {/* ✅ IMPORTANT: single pricing source (landing section) */}
           <Link
             href="/pricing"
             className="inline-flex items-center rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 px-4 py-2 text-sm font-semibold hover:bg-neutral-100/50 dark:hover:bg-neutral-900 transition"
@@ -90,9 +95,13 @@ export default async function DashboardPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/60 dark:bg-neutral-950/50 backdrop-blur p-5">
           <div className="text-sm text-neutral-500">Saved projects</div>
-          <div className="mt-2 text-2xl font-bold">0</div>
+          <div className="mt-2 text-2xl font-bold">{savedCount}</div>
           <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-            Start adding your favourite projects.
+            {savedCount === 0
+              ? "Start adding your favourite projects."
+              : savedCount === 1
+                ? "You have 1 saved project."
+                : `You have ${savedCount} saved projects.`}
           </p>
         </div>
 
@@ -114,12 +123,22 @@ export default async function DashboardPage() {
           </p>
         </div>
 
+        {/* ✅ Replace SaaS 'Free' with service package wording */}
         <div className="rounded-2xl border border-neutral-200/70 dark:border-neutral-800/70 bg-white/60 dark:bg-neutral-950/50 backdrop-blur p-5">
-          <div className="text-sm text-neutral-500">Plan</div>
-          <div className="mt-2 text-2xl font-bold">Free</div>
+          <div className="text-sm text-neutral-500">Package</div>
+          <div className="mt-2 text-2xl font-bold">{currentPackage}</div>
           <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-            Upgrade anytime from pricing page.
+            Choose a package on the pricing section.
           </p>
+
+          <div className="mt-4">
+            <Link
+              href="/#pricing"
+              className="inline-flex items-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 dark:bg-neutral-100 dark:text-neutral-900 transition"
+            >
+              View pricing
+            </Link>
+          </div>
         </div>
       </div>
 

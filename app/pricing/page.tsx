@@ -1,114 +1,166 @@
 import Link from "next/link";
+import SiteHeader from "@/components/SiteHeader";
 
-const plans = [
+type PlanId = "starter" | "pro" | "studio";
+type Plan = {
+  id: PlanId;
+  name: string;
+  price: string;
+  note: string;
+  features: string[];
+  highlight?: boolean;
+  ctaLabel: string;
+  ctaHref: string;
+};
+
+const PLANS: Plan[] = [
   {
+    id: "starter",
     name: "Starter",
-    price: "€0",
-    desc: "Try the core experience.",
-    features: ["Browse projects", "Contact form", "Basic dashboard"],
-    cta: "Get started",
-    href: "/auth/sign-up",
-    highlight: false,
+    price: "€199",
+    note: "one-time / from",
+    features: ["Landing page", "Gallery section", "Basic SEO"],
+    ctaLabel: "Get started",
+    ctaHref: "/contact?plan=starter",
   },
   {
+    id: "pro",
     name: "Pro",
-    price: "€19",
-    desc: "For serious clients and teams.",
-    features: [
-      "Unlimited projects",
-      "Saved favorites",
-      "Priority support",
-      "Advanced filters",
-    ],
-    cta: "Start Pro",
-    href: "/auth/sign-up",
+    price: "€399",
+    note: "one-time / from",
+    features: ["Everything in Starter", "Auth + Dashboard", "Project listing pages"],
     highlight: true,
+    ctaLabel: "Get started",
+    ctaHref: "/contact?plan=pro",
   },
   {
-    name: "Business",
-    price: "€49",
-    desc: "For agencies & scaling.",
-    features: [
-      "Team access",
-      "Client-ready exports",
-      "Custom branding",
-      "Dedicated onboarding",
-    ],
-    cta: "Contact sales",
-    href: "/#contact",
-    highlight: false,
+    id: "studio",
+    name: "Studio",
+    price: "€799",
+    note: "one-time / from",
+    features: ["Everything in Pro", "Custom pages", "Email form + integrations"],
+    ctaLabel: "Get started",
+    ctaHref: "/contact?plan=studio",
   },
 ];
 
+function PriceCard({
+  name,
+  price,
+  note,
+  features,
+  highlight,
+  ctaLabel,
+  ctaHref,
+}: {
+  name: string;
+  price: string;
+  note: string;
+  features: string[];
+  highlight?: boolean;
+  ctaLabel: string;
+  ctaHref: string;
+}) {
+  return (
+    <div
+      className={`relative rounded-3xl border p-8 bg-white/80 ${
+        highlight ? "border-neutral-900/15 shadow-xl" : "border-neutral-900/10"
+      }`}
+    >
+      {highlight ? (
+        <div className="absolute -top-3 left-6 rounded-full border border-neutral-900/10 bg-white px-3 py-1 text-xs font-semibold text-neutral-900">
+          Most popular
+        </div>
+      ) : null}
+
+      <div className="text-neutral-900 font-semibold text-lg">{name}</div>
+
+      <div className="mt-3 flex items-end gap-2">
+        <div className="text-4xl font-bold text-neutral-900">{price}</div>
+        <div className="pb-1 text-sm text-neutral-600">{note}</div>
+      </div>
+
+      <ul className="mt-6 space-y-2 text-sm text-neutral-700">
+        {features.map((f) => (
+          <li key={f} className="flex gap-2">
+            <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-neutral-900/70" />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        href={ctaHref}
+        className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold transition ${
+          highlight
+            ? "bg-neutral-900 text-white hover:bg-neutral-800"
+            : "border border-neutral-900/15 bg-white hover:bg-neutral-50 text-neutral-900"
+        }`}
+      >
+        {ctaLabel}
+      </Link>
+    </div>
+  );
+}
+
 export default function PricingPage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-16">
-      <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          Simple pricing that scales
-        </h1>
-        <p className="mt-4 text-base text-neutral-600 dark:text-neutral-400">
-          Choose a plan that fits your needs. Upgrade any time.
-        </p>
-      </div>
+    <main className="bg-white text-neutral-900 min-h-screen">
+      <SiteHeader />
+      <div className="h-24 sm:h-28" />
 
-      <div className="mt-12 grid gap-6 lg:grid-cols-3">
-        {plans.map((p) => (
-          <div
-            key={p.name}
-            className={[
-              "relative rounded-2xl border p-6 shadow-sm backdrop-blur",
-              p.highlight
-                ? "border-neutral-900/20 bg-white/80 dark:border-neutral-100/20 dark:bg-neutral-950/70"
-                : "border-neutral-200/70 bg-white/60 dark:border-neutral-800/70 dark:bg-neutral-950/50",
-            ].join(" ")}
-          >
-            {p.highlight ? (
-              <div className="absolute -top-3 right-4 rounded-full border border-neutral-900/10 bg-white px-3 py-1 text-xs font-medium text-neutral-900 shadow-sm dark:border-neutral-100/15 dark:bg-neutral-950 dark:text-neutral-100">
-                Most popular
-              </div>
-            ) : null}
+      <section className="relative overflow-hidden">
+        {/* background */}
+        <div className="absolute inset-0 [background-image:linear-gradient(rgba(0,0,0,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.06)_1px,transparent_1px)] [background-size:84px_84px] opacity-[0.18]" />
+        <div className="absolute -top-56 -left-56 h-[560px] w-[560px] rounded-full blur-3xl bg-neutral-900/10" />
+        <div className="absolute -bottom-64 -right-56 h-[620px] w-[620px] rounded-full blur-3xl bg-neutral-900/6" />
 
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-lg font-semibold">{p.name}</h2>
-              <div className="text-2xl font-semibold">{p.price}</div>
-            </div>
-
-            <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-              {p.desc}
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+          <div className="max-w-3xl">
+            <p className="inline-flex items-center gap-2 rounded-full border border-neutral-900/10 bg-white/70 px-4 py-2 text-xs sm:text-sm text-neutral-700 backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-900/70" />
+              Atrium Studio
             </p>
 
-            <ul className="mt-5 space-y-2 text-sm">
-              {p.features.map((f) => (
-                <li key={f} className="flex items-start gap-2">
-                  <span className="mt-1 inline-block h-2 w-2 rounded-full bg-neutral-900/60 dark:bg-neutral-100/60" />
-                  <span className="text-neutral-700 dark:text-neutral-300">{f}</span>
-                </li>
-              ))}
-            </ul>
+            <h1 className="mt-6 text-4xl sm:text-5xl md:text-6xl font-serif font-bold tracking-tight">
+              Pricing
+            </h1>
+            <p className="mt-4 text-base sm:text-lg text-neutral-600">
+              One-time packages (from). Clear scope, clear next step.
+            </p>
+          </div>
 
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {PLANS.map((p) => (
+              <PriceCard
+                key={p.id}
+                name={p.name}
+                price={p.price}
+                note={p.note}
+                features={p.features}
+                highlight={p.highlight}
+                ctaLabel={p.ctaLabel}
+                ctaHref={p.ctaHref}
+              />
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-col sm:flex-row gap-3">
             <Link
-              href={p.href}
-              className={[
-                "mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-2 text-sm font-medium transition",
-                p.highlight
-                  ? "bg-neutral-900 text-white hover:opacity-90 dark:bg-neutral-100 dark:text-neutral-900"
-                  : "border border-neutral-200 bg-white hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:bg-neutral-900",
-              ].join(" ")}
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 transition"
             >
-              {p.cta}
+              Contact for quote
+            </Link>
+            <Link
+              href="/projects"
+              className="inline-flex items-center justify-center rounded-2xl border border-neutral-900/15 bg-white px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition"
+            >
+              View projects
             </Link>
           </div>
-        ))}
-      </div>
-
-      <div className="mt-12 rounded-2xl border border-neutral-200/70 bg-white/60 p-6 text-center text-sm text-neutral-700 backdrop-blur dark:border-neutral-800/70 dark:bg-neutral-950/50 dark:text-neutral-300">
-        Have questions?{" "}
-        <Link className="font-medium underline" href="/#contact">
-          Contact us
-        </Link>{" "}
-        and we’ll help you choose the best plan.
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
